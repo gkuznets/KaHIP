@@ -34,16 +34,17 @@ public:
         strongly_connected_components();
         virtual ~strongly_connected_components();
 
-        int strong_components( graph_access & G, std::vector<int> & comp_num);       
- 
-        void scc_dfs(NodeID node, graph_access & G, 
+        int strong_components( graph_access & G, std::vector<int> & comp_num);
+
+        void scc_dfs(graph_access & G,
                      std::vector<int>   & dfsnum, 
                      std::vector<int>   & comp_num, 
                      std::stack<NodeID> & unfinished, 
                      std::stack<NodeID> & roots); 
 private:
-        int m_dfscount; 
+        int m_dfscount;
         int m_comp_count;
+        std::stack<NodeID> m_scc_stack;
 };
 
 

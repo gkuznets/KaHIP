@@ -48,51 +48,58 @@ int strongly_connected_components::strong_components( graph_access & G, std::vec
 
         forall_nodes(G, node) {
                 if(dfsnum[node] == -1) {
-                        scc_dfs(node, G, dfsnum, comp_num, unfinished, roots); 
+                        ASSERT_TRUE(m_scc_stack.empty());
+                        m_scc_stack.push(node);
+                        scc_dfs(G, dfsnum, comp_num, unfinished, roots);
                 }
         } endfor
         return m_comp_count;
 }
 
-void strongly_connected_components::scc_dfs(NodeID node, graph_access & G, 
-                                            std::vector<int> & dfsnum, 
+void strongly_connected_components::scc_dfs(graph_access & G,
+                                            std::vector<int> & dfsnum,
                                             std::vector<int> & comp_num,
-                                            std::stack<NodeID> & unfinished, 
-                                            std::stack<NodeID> & roots){ 
-        dfsnum[node] = m_dfscount++;
+                                            std::stack<NodeID> & unfinished,
+                                            std::stack<NodeID> & roots){
 
-        //make node a tentative scc of its own
-        unfinished.push(node);
-        roots.push(node);
+        while(!m_scc_stack.empty()) {
+                const NodeID node = m_scc_stack.top();
+                // If finish_processing == false, then do not pop the node
+                // of the stack
+                const bool finish_processing = (dfsnum[node] != -1);
 
-        forall_out_edges(G, e, node) {
-                NodeID target = G.getEdgeTarget(e);
-                //explore edge (node, target)
-                if(dfsnum[target] == -1) {
-                        scc_dfs(target, G, dfsnum, comp_num, unfinished, roots); 
-                } else if( comp_num[target] == -1) {
-                        //merge scc's
-                        while( dfsnum[roots.top()] > dfsnum[target] ) roots.pop();
+                if (finish_processing) {
+                        m_scc_stack.pop();
+                        //return from call of node node
+                        NodeID w;
+                        if(node == roots.top()) {
+                                do {
+                                        w = unfinished.top();
+                                        unfinished.pop();
+                                        comp_num[w] = m_comp_count;
+                                } while( w != node );
+                                m_comp_count++;
+                                roots.pop();
+                        }
+                        continue;
                 }
+                dfsnum[node] = m_dfscount++;
 
-        } endfor
+                //make node a tentative scc of its own
+                unfinished.push(node);
+                roots.push(node);
 
-        //return from call of node node
-        NodeID w;
-        if(node == roots.top()) {
-                do {
-                        w = unfinished.top(); 
-                        unfinished.pop();
-                        comp_num[w] = m_comp_count;
-                } while( w != node );
-                m_comp_count++;
-                roots.pop();
-        } 
-
+                forall_out_edges(G, e, node) {
+                        NodeID target = G.getEdgeTarget(e);
+                        //explore edge (node, target)
+                        if(dfsnum[target] == -1) {
+                                m_scc_stack.push(target);
+                                //scc_dfs(target, G, dfsnum, comp_num, unfinished, roots);
+                        } else if( comp_num[target] == -1) {
+                                //merge scc's
+                                while( dfsnum[roots.top()] > dfsnum[target] ) roots.pop();
+                        }
+                } endfor
+        }
 }
-
-
-
-
-
 
