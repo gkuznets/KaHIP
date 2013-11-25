@@ -94,7 +94,6 @@ void strongly_connected_components::scc_dfs(graph_access & G,
                         //explore edge (node, target)
                         if(dfsnum[target] == -1) {
                                 m_scc_stack.push(target);
-                                //scc_dfs(target, G, dfsnum, comp_num, unfinished, roots);
                         } else if( comp_num[target] == -1) {
                                 //merge scc's
                                 while( dfsnum[roots.top()] > dfsnum[target] ) roots.pop();
